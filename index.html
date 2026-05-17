@@ -1,1 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>tennaxis — BRAT // blackout</title>
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            background: #000000;
+            color: #ffffff;
+            font-family: 'Archivo Black', 'Bebas Neue', 'Helvetica Neue', 'Impact', sans-serif;
+            text-transform: lowercase;
+            line-height: 1;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* main container */
+        .site {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 2rem 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 100vh;
+        }
+
+        /* hero */
+        .hero {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.2rem;
+            margin: 1.5rem 0 2rem;
+        }
+
+        .main-title {
+            font-size: clamp(5rem, 18vw, 13rem);
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            text-transform: lowercase;
+            line-height: 0.92;
+            transform: scaleY(1.02);
+            animation: subtleGlow 5s infinite alternate;
+        }
+
+        @keyframes subtleGlow {
+            0% { text-shadow: 0 0 0 rgba(255,255,255,0); }
+            100% { text-shadow: 0 0 5px rgba(255,255,255,0.2); }
+        }
+
+        .artist-tag {
+            font-size: clamp(1.2rem, 4.5vw, 2rem);
+            letter-spacing: 6px;
+            border-top: 1px solid rgba(255,255,255,0.4);
+            padding-top: 0.6rem;
+            margin-top: -0.5rem;
+            display: inline-block;
+            font-weight: 400;
+        }
+
+        /* image container — no fading out, always solid */
+        .img-wrapper {
+            max-width: 380px;
+            width: 100%;
+            margin: 1.8rem auto 0;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .img-frame {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .tennaxis-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            filter: grayscale(100%) contrast(1.55) brightness(0.92);
+            transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1), filter 0.3s;
+            will-change: transform;
+        }
+
+        /* grain overlay */
+        .grain {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><filter id="a"><feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="3"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(%23a)" opacity="0.45"/></svg>');
+            background-repeat: repeat;
+            background-size: 200px;
+            mix-blend-mode: overlay;
+            opacity: 0.38;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* blur trails (always visible, no fade) */
+        .img-frame::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://i1.sndcdn.com/avatars-t1AUvoI7WAQqJjQJ-3zFtrw-t240x240.jpg') center/cover no-repeat;
+            filter: blur(12px) grayscale(100%) contrast(1.2);
+            opacity: 0.32;
+            mix-blend-mode: screen;
+            transform: translateX(5px) translateY(3px);
+            animation: trailMove 6s infinite alternate ease-in-out;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes trailMove {
+            0% { transform: translateX(3px) translateY(2px); opacity: 0.28; filter: blur(10px);}
+            100% { transform: translateX(-5px) translateY(-4px); opacity: 0.42; filter: blur(15px);}
+        }
+
+        /* floating animation — smooth, no opacity change */
+        .float-element {
+            animation: floatAnim 5s infinite ease-in-out;
+        }
+
+        @keyframes floatAnim {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-9px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* hover distortion (no fade) */
+        .img-frame:hover .tennaxis-img {
+            filter: grayscale(100%) contrast(1.75) brightness(0.85) blur(0.4px);
+            transform: scale(1.02) skewX(0.9deg);
+        }
+        .img-frame:hover {
+            transform: scale(0.98);
+            transition: transform 0.2s;
+        }
+
+        /* buttons — NO animation, just static thin outline */
+        .links {
+            display: flex;
+            justify-content: center;
+            gap: 2.2rem;
+            flex-wrap: wrap;
+            margin: 2.5rem 0 1.2rem;
+        }
+
+        .btn-link {
+            background: transparent;
+            border: 1.5px solid #ffffff;
+            color: #ffffff;
+            padding: 0.85rem 2.6rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-decoration: none;
+            text-transform: lowercase;
+            font-family: 'Archivo Black', 'Bebas Neue', sans-serif;
+            text-align: center;
+            min-width: 170px;
+            backdrop-filter: blur(2px);
+            /* NO transition, NO hover effects beyond basic color (no movement, no glow) */
+            transition: none;
+        }
+
+        /* absolutely no transform, no shadow, no letter-spacing change on hover */
+        .btn-link:hover {
+            background: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
+            /* no transform, no glow, no movement */
+        }
+
+        /* footer — only "made by raf six" */
+        .footer {
+            text-align: right;
+            font-size: 0.7rem;
+            font-family: monospace;
+            opacity: 0.55;
+            padding-top: 1.2rem;
+            margin-top: 1.5rem;
+            border-top: 0.5px solid rgba(255,255,255,0.2);
+            text-transform: lowercase;
+        }
+
+        /* flicker overlay (occasional) */
+        .flicker {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.02s linear;
+        }
+
+        /* responsive */
+        @media (max-width: 700px) {
+            .site {
+                padding: 1.2rem;
+            }
+            .btn-link {
+                padding: 0.6rem 1.4rem;
+                font-size: 1rem;
+                min-width: 140px;
+            }
+            .img-wrapper {
+                max-width: 280px;
+            }
+            .links {
+                gap: 1.2rem;
+            }
+            .footer {
+                text-align: center;
+            }
+        }
+
+        /* no fading on any essential element */
+        .hero, .links, .footer, .img-wrapper {
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        /* scrollbar minimal */
+        ::-webkit-scrollbar {
+            width: 2px;
+            background: #000;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+        }
+
+        /* entrance animation (no fade out after) */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .hero, .img-wrapper, .links, .footer {
+            animation: slideUp 0.9s ease-out forwards;
+        }
+        .img-wrapper {
+            animation-delay: 0.1s;
+        }
+        .links {
+            animation-delay: 0.2s;
+        }
+        .footer {
+            animation-delay: 0.25s;
+        }
+    </style>
+</head>
+<body>
+
+<div class="flicker" id="flickerOverlay"></div>
+
+<div class="site">
+    <div class="hero">
+        <h1 class="main-title">tennaxis</h1>
+        <div class="artist-tag">artist</div>
+        
+        <!-- image block: no fading, grain, trails, float -->
+        <div class="img-wrapper float-element">
+            <div class="img-frame">
+                <img class="tennaxis-img" 
+                     src="https://i1.sndcdn.com/avatars-t1AUvoI7WAQqJjQJ-3zFtrw-t240x240.jpg" 
+                     alt="tennaxis monochrome"
+                     crossorigin="anonymous"
+                     referrerpolicy="no-referrer">
+                <div class="grain"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SPOTIFY & SOUNDCLOUD LINKS — no animation, static thin outline -->
+    <div class="links">
+        <a href="https://open.spotify.com/artist/6n9wqcbOodp0E9tQrP19Nn?si=XMUJYUPdSi657aL7CbAyVQ" target="_blank" rel="noopener noreferrer" class="btn-link">spotify</a>
+        <a href="https://soundcloud.com/tennaxis" target="_blank" rel="noopener noreferrer" class="btn-link">soundcloud</a>
+    </div>
+
+    <div class="footer">
+        made by raf six
+    </div>
+</div>
+
+<!-- hidden audio: autoplay, loop, 40% volume -->
+<audio id="bgAudio" loop preload="auto" style="display: none;">
+    <source src="file:///C:/Users/Admin/Downloads/Other%20Side.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+    (function() {
+        // ----- ensure image never fades out, fix any potential missing visibility -----
+        const imgContainer = document.querySelector('.img-wrapper');
+        const img = document.querySelector('.tennaxis-img');
+        if (img) {
+            // if image fails to load, keep black placeholder but no fade
+            img.onerror = () => {
+                img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"%3E%3Crect width="200" height="200" fill="%23000"/%3E%3Ctext x="50%25" y="50%25" fill="white" font-size="14" font-family="monospace" text-anchor="middle" dy=".3em"%3ETENNAXIS%3C/text%3E%3C/svg%3E';
+                img.style.filter = "grayscale(100%) contrast(1.6)";
+            };
+        }
+
+        // GSAP cinematic entrance + floating augmentation (no fade-outs)
+        gsap.registerPlugin();
+        const tl = gsap.timeline();
+        tl.from(".main-title", { duration: 1.1, y: 65, opacity: 0, skewY: 2, ease: "power3.out" })
+          .from(".artist-tag", { duration: 0.8, y: 25, opacity: 0, ease: "back.out(0.6)" }, "-=0.5")
+          .from(".img-wrapper", { duration: 1, scale: 0.94, opacity: 0, y: 20, ease: "elastic.out(1, 0.4)" }, "-=0.4")
+          .from(".btn-link", { duration: 0.6, opacity: 0, y: 15, stagger: 0.1, ease: "power2.out" }, "-=0.2")
+          .from(".footer", { duration: 0.5, opacity: 0, y: 10 }, "-=0.1");
+
+        // extra smooth floating animation (gsap + css combined but no fading)
+        gsap.to(".float-element", {
+            y: "random(-7, -3)",
+            duration: 3.4,
+            repeat: -1,
+            yoyo: true,
+            ease: "sine.inOut",
+            delay: 0.2
+        });
+
+        // hover distortion for image (intact)
+        const frameEl = document.querySelector('.img-frame');
+        const imageEl = document.querySelector('.tennaxis-img');
+        if(frameEl && imageEl) {
+            frameEl.addEventListener("mouseenter", () => {
+                gsap.to(frameEl, { duration: 0.2, scale: 0.98, filter: "brightness(0.97)", ease: "power1.out" });
+                gsap.to(imageEl, { duration: 0.25, scale: 1.01, skewX: 0.7, ease: "power1.out" });
+            });
+            frameEl.addEventListener("mouseleave", () => {
+                gsap.to(frameEl, { duration: 0.5, scale: 1, filter: "none", ease: "elastic.out(0.9, 0.3)" });
+                gsap.to(imageEl, { duration: 0.5, scale: 1, skewX: 0, ease: "power2.out" });
+            });
+        }
+
+        // ---- OCCASIONAL FLICKER (subtle) ----
+        const flickerDiv = document.getElementById('flickerOverlay');
+        function quickFlicker() {
+            if(!flickerDiv) return;
+            flickerDiv.style.transition = "opacity 0.02s linear";
+            flickerDiv.style.opacity = "0.1";
+            setTimeout(() => {
+                flickerDiv.style.opacity = "0";
+            }, 45);
+            setTimeout(() => {
+                flickerDiv.style.transition = "opacity 0.07s";
+            }, 60);
+        }
+
+        let flickerSchedule;
+        function startFlickerLoop() {
+            const delay = Math.floor(Math.random() * (16000 - 8000 + 1) + 8000);
+            flickerSchedule = setTimeout(() => {
+                quickFlicker();
+                startFlickerLoop();
+            }, delay);
+        }
+        startFlickerLoop();
+        setTimeout(quickFlicker, 400);
+        // click flicker for fashion energy
+        document.body.addEventListener('click', () => quickFlicker());
+
+        // ---- AUDIO: autoplay, loop, volume 0.4 ----
+        const audio = document.getElementById('bgAudio');
+        if(audio) {
+            audio.volume = 0.4;
+            audio.loop = true;
+            
+            const startAudio = () => {
+                audio.play().then(() => {
+                    // success: remove listeners
+                    document.removeEventListener('click', startAudio);
+                    document.removeEventListener('touchstart', startAudio);
+                    window.removeEventListener('scroll', startAudioOnce);
+                }).catch(err => {
+                    // still blocked — wait for any user gesture
+                    const userGesture = () => {
+                        audio.play().catch(() => {});
+                        document.removeEventListener('click', userGesture);
+                        document.removeEventListener('touchstart', userGesture);
+                    };
+                    document.addEventListener('click', userGesture, { once: true });
+                    document.addEventListener('touchstart', userGesture, { once: true });
+                });
+            };
+            
+            function startAudioOnce() {
+                audio.play().catch(() => {});
+                window.removeEventListener('scroll', startAudioOnce);
+            }
+            
+            audio.load();
+            setTimeout(() => {
+                startAudio();
+            }, 80);
+            
+            // if file not found, no error popups — just silent fail
+            audio.addEventListener('error', (e) => {
+                // local file may be missing — silent fail, no UI break
+            });
+            
+            // ensure volume stays 0.4
+            audio.addEventListener('loadedmetadata', () => { audio.volume = 0.4; });
+        }
+
+        // ---- small mouse parallax on image container (adds motion but no fade) ----
+        const imgBlock = document.querySelector('.img-wrapper');
+        if(imgBlock) {
+            document.addEventListener('mousemove', (e) => {
+                const rect = imgBlock.getBoundingClientRect();
+                const centerX = rect.left + rect.width/2;
+                const centerY = rect.top + rect.height/2;
+                const moveX = (e.clientX - centerX) / 45;
+                const moveY = (e.clientY - centerY) / 45;
+                gsap.to(imgBlock, {
+                    duration: 0.9,
+                    x: moveX * 2,
+                    y: moveY * 1.8,
+                    ease: "power2.out",
+                    overwrite: true
+                });
+            });
+            imgBlock.addEventListener('mouseleave', () => {
+                gsap.to(imgBlock, { duration: 1.2, x: 0, y: 0, ease: "elastic.out(0.8, 0.5)" });
+            });
+        }
+
+        // additional safety: ensure no element has opacity animation that fades image
+        const styleClear = document.createElement('style');
+        styleClear.textContent = `
+            .img-wrapper, .img-frame, .tennaxis-img, .grain, .img-frame::after {
+                opacity: 1 !important;
+                visibility: visible !important;
+                animation-fill-mode: forwards !important;
+            }
+            .btn-link {
+                opacity: 1 !important;
+                display: inline-block !important;
+                transition: none !important;
+            }
+            .btn-link:hover {
+                transform: none !important;
+                box-shadow: none !important;
+                letter-spacing: 2px !important;
+            }
+            .links {
+                display: flex !important;
+                visibility: visible !important;
+            }
+        `;
+        document.head.appendChild(styleClear);
+        
+        // ensure pure black background permanent
+        document.body.style.backgroundColor = '#000000';
+        
+        // final check: re-apply button visibility & no animation
+        const allBtns = document.querySelectorAll('.btn-link');
+        allBtns.forEach(btn => {
+            btn.style.display = 'inline-block';
+            btn.style.transition = 'none';
+        });
+        
+        // idle flicker reset
+        let idleTimer;
+        function resetIdle() {
+            if(idleTimer) clearTimeout(idleTimer);
+            idleTimer = setTimeout(() => {
+                quickFlicker();
+            }, 30000);
+        }
+        window.addEventListener('mousemove', resetIdle);
+        window.addEventListener('scroll', resetIdle);
+        resetIdle();
+        
+        // console quiet
+    })();
+</script>
+</body>
+</html>
